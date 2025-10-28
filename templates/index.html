@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAG-DocQA</title>
+  <style>
+    /* ==========================================
+       RAG-DocQA - Minimalist Styles
+       ========================================== */
+
+    :root {
+      --primary: #0066ff;
+      --primary-dark: #0052cc;
+      --danger: #dc3545;
+      --danger-dark: #c82333;
+      --background: #ffffff;
+      --surface: #f8f9fa;
+      --border: #e1e4e8;
+      --text: #24292e;
+      --text-secondary: #586069;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --shadow-hover: rgba(0, 0, 0, 0.12);
+      --user-bubble: #0066ff;
+      --assistant-bubble: #f0f2f5;
+      --warning-bg: #fff3cd;
+      --warning-border: #ffc107;
+      --warning-text: #856404;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #4d94ff;
+        --primary-dark: #3d7ecc;
+        --danger: #ff4d5e;
+        --danger-dark: #e6374a;
+        --background: #0d1117;
+        --surface: #161b22;
+        --border: #30363d;
+        --text: #c9d1d9;
+        --text-secondary: #8b949e;
+        --shadow: rgba(0, 0, 0, 0.3);
+        --shadow-hover: rgba(0, 0, 0, 0.4);
+        --user-bubble: #1f6feb;
+        --assistant-bubble: #21262d;
+        --warning-bg: #332701;
+        --warning-border: #ffc107;
+        --warning-text: #ffecb3;
+      }
+    }
+
+    /* ==========================================
+       Base Styles
+       ========================================== */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================
+       Header
+       ========================================== */
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 1rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    /* ==========================================
+       Navigation
+       ========================================== */
+
+    .nav {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link:hover {
+      color: var(--text);
+      background: var(--background);
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .nav-link svg {
+      flex-shrink: 0;
+    }
+
+    /* ==========================================
+       Container & Pages
+       ========================================== */
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      width: 100%;
+    }
+
+    main {
+      padding: 2rem 1rem;
+      min-height: calc(100vh - 140px);
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .page-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .page-description {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* ==========================================
+       Warning Box
+       ========================================== */
+
+    .warning-box {
+      display: flex;
+      gap: 0.875rem;
+      padding: 1rem 1.25rem;
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-radius: var(--radius-sm);
+      color: var(--warning-text);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .warning-box svg {
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    /* ==========================================
+       Upload Form
+       ========================================== */
+
+    #upload-form {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    #dropzone {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      margin-bottom: 1.5rem;
+    }
+
+    #dropzone:hover {
+      border-color: var(--primary);
+      background: var(--background);
+    }
+
+    #dropzone.hover {
+      border-color: var(--primary);
+      background: var(--background);
+      transform: scale(1.01);
+    }
+
+    .upload-icon {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .dropzone-text {
+      font-size: 1.1rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .dropzone-or {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+
+    /* File List Styles */
+    .file-list {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .file-list.show {
+      display: block;
+    }
+
+    .file-list-header {
+      margin-bottom: 1rem;
+    }
+
+    .file-list-header h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+
+    .file-list-hint {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .file-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      transition: all 0.2s ease;
+    }
+
+    .file-item svg {
+      flex-shrink: 0;
+      color: var(--text-secondary);
+    }
+
+    .file-name {
+      flex: 1;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+
+    .file-size {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      flex-shrink: 0;
+    }
+
+    .btn-remove {
+      flex-shrink: 0;
+      padding: 0.375rem;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-remove:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    /* ==========================================
+       Buttons
+       ========================================== */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px var(--shadow-hover);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .btn-secondary {
+        background: var(--surface);
+      }
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface);
+      border-color: var(--primary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      background: var(--danger-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-large {
+      padding: 1rem 2rem;
+      font-size: 1.05rem;
+    }
+
+    .btn-small {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .btn-send {
+      padding: 0.875rem;
+      flex-shrink: 0;
+    }
+
+    .btn-send svg {
+      flex-shrink: 0;
+    }
+
+    /* ==========================================
+       Chat Container
+       ========================================== */
+
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: calc(100vh - 320px);
+      max-height: 650px;
+      min-height: 400px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: var(--surface);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .messages::-webkit-scrollbar-thumb:hover {
+      background: var(--text-secondary);
+    }
+
+    /* ==========================================
+       Messages
+       ========================================== */
+
+    .message-wrapper {
+      display: flex;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-wrapper-user {
+      justify-content: flex-end;
+    }
+
+    .message-wrapper-assistant {
+      justify-content: flex-start;
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 0.875rem 1.125rem;
+      border-radius: var(--radius);
+      line-height: 1.5;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .message-user {
+      background: var(--user-bubble);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message-assistant {
+      background: var(--assistant-bubble);
+      color: var(--text);
+      border-bottom-left-radius: 4px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-secondary);
+      text-align: center;
+      gap: 0.75rem;
+    }
+
+    .empty-state svg {
+      opacity: 0.4;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .empty-state-hint {
+      font-size: 0.9rem !important;
+      font-weight: 400 !important;
+      opacity: 0.7;
+    }
+
+    .messages:has(.message) .empty-state {
+      display: none;
+    }
+
+    /* ==========================================
+       Composer
+       ========================================== */
+
+    .composer {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    #message-input {
+      flex: 1;
+      padding: 0.875rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-family: inherit;
+      resize: none;
+      background: var(--background);
+      color: var(--text);
+      transition: all 0.2s ease;
+      line-height: 1.5;
+      max-height: 200px;
+      min-height: 44px;
+    }
+
+    #message-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+    }
+
+    #message-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    /* ==========================================
+       Status Indicators
+       ========================================== */
+
+    .status-indicator {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      padding: 0.5rem 0;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ==========================================
+       Toast Notifications
+       ========================================== */
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--text);
+      color: var(--background);
+      padding: 0.875rem 1.5rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 4px 20px var(--shadow-hover);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      font-weight: 500;
+      max-width: 90%;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ==========================================
+       Responsive Design
+       ========================================== */
+
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem 1rem 0;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      .subtitle {
+        font-size: 0.85rem;
+      }
+
+      main {
+        padding: 1.5rem 1rem;
+      }
+
+      .page-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .page-header h2 {
+        font-size: 1.25rem;
+      }
+
+      .nav {
+        gap: 0.25rem;
+      }
+
+      .nav-link {
+        padding: 0.625rem 1rem;
+        font-size: 0.9rem;
+      }
+
+      #dropzone {
+        padding: 2rem 1rem;
+      }
+
+      .warning-box {
+        font-size: 0.875rem;
+        padding: 0.875rem 1rem;
+      }
+
+      .message {
+        max-width: 85%;
+      }
+
+      .chat-container {
+        height: calc(100vh - 280px);
+        min-height: 350px;
+      }
+
+      .composer {
+        gap: 0.375rem;
+      }
+
+      .btn-large {
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+      }
+
+      .btn-small {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+      }
+
+      .page-header-content {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .empty-state svg {
+        width: 48px;
+        height: 48px;
+      }
+
+      .empty-state p {
+        font-size: 1rem;
+      }
+
+      .file-item {
+        flex-wrap: wrap;
+      }
+
+      .file-name {
+        flex-basis: 100%;
+        order: -1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.25rem;
+      }
+
+      .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+        gap: 0.375rem;
+      }
+
+      .nav-link svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .btn {
+        font-size: 0.9rem;
+      }
+
+      .btn-send {
+        padding: 0.75rem;
+      }
+
+      .btn-send svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  </style>
+  <meta name="color-scheme" content="light dark" />
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>RAG-DocQA</h1>
+      <p class="subtitle">Chat with your documents using AI</p>
+      
+      <nav class="nav">
+        <a href="#upload" class="nav-link" data-page="upload">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          Upload
+        </a>
+        <a href="#chat" class="nav-link" data-page="chat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Chat
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Upload Page -->
+    <div id="upload-page" class="page">
+      <div class="page-header">
+        <h2>Upload Documents</h2>
+        <p class="page-description">Upload your documents to start chatting. Supported formats: PDF, TXT, DOCX, etc.</p>
+      </div>
+
+      <div class="warning-box">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+          <line x1="12" y1="9" x2="12" y2="13"></line>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <div>
+          <strong>Important:</strong> Uploading new documents will replace your current session and clear all chat history.
+        </div>
+      </div>
+
+      <form id="upload-form">
+        <div id="dropzone">
+          <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <p class="dropzone-text">Drag and drop files here</p>
+          <p class="dropzone-or">or</p>
+          <label class="btn btn-secondary">
+            Choose Files
+            <input id="file-input" type="file" name="files" multiple hidden accept=".pdf,.txt,.doc,.docx" />
+          </label>
+        </div>
+
+        <div id="file-list" class="file-list">
+          <div class="file-list-header">
+            <h3>Selected Files</h3>
+            <p class="file-list-hint">Ready to upload</p>
+          </div>
+          <div id="file-items" class="file-items"></div>
+        </div>
+
+        <div class="form-actions">
+          <button id="upload-btn" class="btn btn-primary btn-large" type="submit">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="16 16 12 12 8 16"></polyline>
+              <line x1="12" y1="12" x2="12" y2="21"></line>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+            </svg>
+            Upload & Index Documents
+          </button>
+          <div id="upload-status" class="status-indicator">
+            <span class="spinner"></span>
+            <span>Indexing documents, please wait...</span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Chat Page -->
+    <div id="chat-page" class="page">
+      <div class="page-header">
+        <div class="page-header-content">
+          <div>
+            <h2>Chat</h2>
+            <p class="page-description">Ask questions about your uploaded documents</p>
+          </div>
+          <button id="clear-btn" class="btn btn-danger btn-small">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Clear Session
+          </button>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div id="messages" class="messages">
+          <div class="empty-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <p>Start a conversation</p>
+            <p class="empty-state-hint">Ask questions about your documents</p>
+          </div>
+        </div>
+
+        <div class="composer">
+          <textarea 
+            id="message-input" 
+            rows="1" 
+            placeholder="Ask about your documents..."
+          ></textarea>
+          <button id="send-btn" class="btn btn-primary btn-send">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+        
+        <div id="thinking-status" class="status-indicator">
+          <span class="spinner"></span>
+          <span>Thinking...</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+    
+    // Use in-memory storage instead of localStorage
+    let sessionId = '';
+
+    // Simple router
+    function navigate(page) {
+      $$('.page').forEach(p => p.style.display = 'none');
+      $(`#${page}-page`).style.display = 'block';
+      
+      // Update nav active state
+      $$('.nav-link').forEach(link => link.classList.remove('active'));
+      $(`[data-page="${page}"]`)?.classList.add('active');
+      
+      window.history.pushState({ page }, '', `#${page}`);
+    }
+
+    // Display selected files
+    function displayFiles(files) {
+      const fileList = $('#file-list');
+      const fileItems = $('#file-items');
+      
+      if (!files || files.length === 0) {
+        fileList.classList.remove('show');
+        return;
+      }
+      
+      fileItems.innerHTML = '';
+      
+      Array.from(files).forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'file-item';
+        item.innerHTML = `
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          <span class="file-name" title="${file.name}">${file.name}</span>
+          <span class="file-size">${formatFileSize(file.size)}</span>
+          <button type="button" class="btn-remove" data-index="${index}">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        `;
+        fileItems.appendChild(item);
+      });
+      
+      fileList.classList.add('show');
+      
+      // Add remove button listeners
+      $('.btn-remove').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.dataset.index);
+          removeFile(index);
+        });
+      });
+    }
+
+    function removeFile(index) {
+      const input = $('#file-input');
+      const dt = new DataTransfer();
+      const files = Array.from(input.files);
+      
+      files.forEach((file, i) => {
+        if (i !== index) dt.items.add(file);
+      });
+      
+      input.files = dt.files;
+      displayFiles(input.files);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    async function uploadFiles(evt) {
+      evt.preventDefault();
+      const input = $('#file-input');
+      const files = input.files;
+      
+      if (!files || files.length === 0) {
+        toast('⚠ Please choose at least one file');
+        return;
+      }
+
+      // Show warning if session exists
+      if (sessionId) {
+        const confirm = window.confirm(
+          '⚠️ WARNING: Uploading new files will replace your current documents and clear all chat history.\n\nDo you want to continue?'
+        );
+        if (!confirm) return;
+      }
+
+      toggleIndexing(true);
+      try {
+        const fd = new FormData();
+        for (const f of files) fd.append('files', f);
+        const res = await fetch('/upload', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Upload failed');
+        const data = await res.json();
+        sessionId = data.session_id;
+        
+        // Clear chat history
+        $('#messages').innerHTML = '';
+        
+        toast('✓ Documents indexed successfully!');
+        setTimeout(() => navigate('chat'), 1500);
+      } catch (e) {
+        console.error(e);
+        toast('✗ Upload failed. Please try again.');
+      } finally {
+        toggleIndexing(false);
+      }
+    }
+
+    async function sendMessage() {
+      const input = $('#message-input');
+      const text = input.value.trim();
+      
+      if (!sessionId) { 
+        toast('⚠ Please upload documents first.');
+        navigate('upload');
+        return;
+      }
+      if (!text) return;
+
+      appendMessage('user', text);
+      input.value = '';
+      input.style.height = 'auto';
+      toggleThinking(true);
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: sessionId, message: text })
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || 'Chat failed');
+        const data = await res.json();
+        appendMessage('assistant', data.answer);
+      } catch (e) {
+        console.error(e);
+        toast('✗ Failed to get response. Please try again.');
+      } finally {
+        toggleThinking(false);
+      }
+    }
+
+    function appendMessage(role, text) {
+      const container = $('#messages');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper ' + (role === 'user' ? 'message-wrapper-user' : 'message-wrapper-assistant');
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'message ' + (role === 'user' ? 'message-user' : 'message-assistant');
+      bubble.textContent = text;
+      
+      wrapper.appendChild(bubble);
+      container.appendChild(wrapper);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function toggleIndexing(on) {
+      $('#upload-btn').disabled = on;
+      $('#upload-status').style.display = on ? 'flex' : 'none';
+      if (!on) {
+        $('#file-input').value = '';
+        $('#file-list').classList.remove('show');
+      }
+    }
+
+    function toggleThinking(on) {
+      $('#send-btn').disabled = on;
+      $('#thinking-status').style.display = on ? 'flex' : 'none';
+    }
+
+    function toast(msg) {
+      const el = $('#toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    function clearSession() {
+      const confirm = window.confirm(
+        '⚠️ WARNING: This will delete all your uploaded documents and chat history.\n\nAre you sure?'
+      );
+      if (!confirm) return;
+      
+      sessionId = '';
+      $('#messages').innerHTML = '';
+      toast('✓ Session cleared');
+      navigate('upload');
+    }
+
+    // Auto-resize textarea
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize page based on session
+      const hash = window.location.hash.slice(1);
+      if (hash && (hash === 'upload' || hash === 'chat')) {
+        navigate(hash);
+      } else if (sessionId) {
+        navigate('chat');
+      } else {
+        navigate('upload');
+      }
+
+      // Event listeners
+      $('#upload-form').addEventListener('submit', uploadFiles);
+      $('#send-btn').addEventListener('click', sendMessage);
+      $('#clear-btn').addEventListener('click', clearSession);
+      
+      // File input change listener
+      $('#file-input').addEventListener('change', (e) => {
+        displayFiles(e.target.files);
+      });
+      
+      $('#message-input').addEventListener('input', (e) => autoResize(e.target));
+      $('#message-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Drag and drop
+      const drop = $('#dropzone');
+      drop.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        drop.classList.add('hover');
+      });
+      drop.addEventListener('dragleave', () => drop.classList.remove('hover'));
+      drop.addEventListener('drop', (e) => {
+        e.preventDefault();
+        drop.classList.remove('hover');
+        $('#file-input').files = e.dataTransfer.files;
+        displayFiles(e.dataTransfer.files);
+      });
+
+      // Navigation
+      $('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const page = e.currentTarget.dataset.page;
+          if (page === 'chat' && !sessionId) {
+            toast('⚠ Please upload documents first');
+            return;
+          }
+          navigate(page);
+        });
+      });
+
+      // Handle browser back/forward
+      window.addEventListener('popstate', (e) => {
+        if (e.state?.page) navigate(e.state.page);
+      });
+    });
+  </script>
+</body>
+</html>
