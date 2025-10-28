@@ -10,7 +10,6 @@ wheels/
 # Virtual environments
 .venv
 
-.github
 logs
 faiss_index
 data
